@@ -10,5 +10,6 @@ float64 utm_e		# [m] Easting in current UTM zone
 float64 alt		# [m] Altitude above mean sea level
 uint8 fix		# GPS fix: 0=Invalid, 1=GPS, 2=DGPS,4=RTK fixed, 5=RTK float 
 uint8 sat		# Number of satellites in view
+float64[9] covariance_enu # covariance matrix in enu [m] -1 if not available
 float64 hdop		# Horizontal Dilution Of Precision
 float64 geoid_height	# [m] Mean sea level height above the WGS-84 ellipsoid
