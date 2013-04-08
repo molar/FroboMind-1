@@ -77,12 +77,13 @@ using namespace std;
 class SimpleOdom
 {
 public:
-	SimpleOdom(double tick_to_meter, double wheel_dist, int yaw_source, int yaw_axis)
+	SimpleOdom(double tick_to_meter, double wheel_dist, int yaw_source, int yaw_axis,bool absolute_encoders)
 	{
 		this->tick_to_meter = tick_to_meter;
 		this->wheel_dist = wheel_dist;
 		this->yaw_source = yaw_source;
 		this->yaw_axis = yaw_axis;
+		this->absolute_encoders = absolute_encoders;
 
 		delta_l = delta_r = 0; // reset encoder ticks (since last published odometry)
 		x = y = theta = 0; // reset map pose
@@ -123,7 +124,17 @@ public:
 	{
 		l_time_prev = l_time_latest;
 		l_time_latest = ros::Time::now();
-		delta_l += msg->encoderticks;
+		if(this->absolute_encoders)
+		{
+			if(this->prev_l.header.seq != 0)
+			{
+			delta_l += msg->encoderticks - prev_l.encoderticks;
+			}
+		}
+		else
+		{
+			delta_l += msg->encoderticks;
+		}
 		prev_l = *msg;
 		l_updated = true;
 	}
@@ -132,7 +143,17 @@ public:
 	{
 		r_time_prev = r_time_latest;
 		r_time_latest = ros::Time::now();
-		delta_r += msg->encoderticks;
+		if(this->absolute_encoders )
+		{
+			if(this->prev_r.header.seq != 0)
+			{
+			delta_r += msg->encoderticks - prev_r.encoderticks;
+			}
+		}
+		else
+		{
+			delta_r += msg->encoderticks;
+		}
 		prev_r = *msg;
 		r_updated = true;
 	}
@@ -190,6 +211,7 @@ public:
 		ros::Time time_now = ros::Time::now();
 		if(l_updated && r_updated)
 		{
+			l_updated = r_updated = false;
 			encoder_timeout = false;
 
 			// check if we are receiving IMU updates
@@ -292,6 +314,8 @@ private:
 	msgs::encoder prev_l, prev_r;
 	nav_msgs::Odometry odom;
 	geometry_msgs::TransformStamped odom_trans;
+
+	bool absolute_encoders;
 };
 
 // main
@@ -307,6 +331,7 @@ int main(int argc, char** argv) {
 
 	double wheel_radius, wheel_ticks_rev, tick_to_meter;
 	double wheel_dist;
+	bool absolute_encoders;
 	int yaw_source, yaw_axis;
 	ros::Subscriber s1,s2,s3;
 
@@ -388,8 +413,10 @@ int main(int argc, char** argv) {
 		}		
 	}
 
+	nh.param<bool>("absolute_encoders",absolute_encoders,false);
+
 	// init class
-	SimpleOdom p(tick_to_meter, wheel_dist, yaw_source, yaw_axis);
+	SimpleOdom p(tick_to_meter, wheel_dist, yaw_source, yaw_axis,absolute_encoders);
 
 	// subscriber callback functions
 	s1 = nh.subscribe(subscribe_enc_l,15,&SimpleOdom::processLeftEncoder,&p);
@@ -401,7 +428,7 @@ int main(int argc, char** argv) {
 	nh.param<std::string>("vehicle_frame",p.base_frame,"base_footprint");
 	nh.param<std::string>("odom_estimate_frame",p.odom_frame,"/odom_combined");
 	ros::Timer t;
-	t = nh.createTimer(ros::Duration(0.02), &SimpleOdom::publishOdometry,&p);
+	t = nh.createTimer(ros::Duration(1/20), &SimpleOdom::publishOdometry,&p);
 
 	ros::spin();
 
