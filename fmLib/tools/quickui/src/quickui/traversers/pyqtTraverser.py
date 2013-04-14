@@ -89,7 +89,8 @@ class pyqtTraverse(Traverser.Traverser):
                               obj.topic_name,
                               obj.topic_type,
                               obj.topic_field,
-                              obj.min_max_tuple
+                              obj.min_max_tuple,
+                              obj.default
                               )
         
         lm.addWidget(slider)

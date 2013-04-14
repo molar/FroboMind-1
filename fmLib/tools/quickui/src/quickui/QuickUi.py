@@ -133,7 +133,7 @@ def ros_btn(btn_name,topic_name,topic_type, topic_field,toggle_dict):
     """
     return RosToggleButton(btn_name,topic_name,topic_type,topic_field,toggle_dict)
     
-def ros_slider(label_name,topic_name,topic_type,topic_field,min_max_tuple):
+def ros_slider(label_name,topic_name,topic_type,topic_field,min_max_tuple,default=None):
     """ Pubslihes a value as read from the slider linearly between min and max
     @param label_name: The name of the label displayed in the GUI
     @type  label_name: str
@@ -146,7 +146,7 @@ def ros_slider(label_name,topic_name,topic_type,topic_field,min_max_tuple):
     @param min_max_tuple: A tuple containing the minimum value and maximum value e.g (0,10)
     @type  min_max_tuple: (min,max)        
     """
-    return RosSlider(label_name,topic_name,topic_type,topic_field,min_max_tuple)
+    return RosSlider(label_name,topic_name,topic_type,topic_field,min_max_tuple,default)
 
 def ros_plot(label_name,topic_name,topic_type,topic_field,buffer_size):
     """ Plots the specified field within the message
